@@ -13,6 +13,7 @@ export default function Home(): JSX.Element {
 
   useEffect(() => {
     const fetchArticles = async () => {
+      setIsLoading(true);
       try {
         const response = await axios.get<{ articles: Article[] }>(
           "https://api.realworld.io/api/articles"
@@ -20,6 +21,8 @@ export default function Home(): JSX.Element {
         setArticles(response.data.articles);
       } catch (error) {
         setError("Failed to fetch articles.");
+      } finally {
+        setIsLoading(false);
       }
     };
 
