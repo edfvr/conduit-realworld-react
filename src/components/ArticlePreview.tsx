@@ -1,3 +1,6 @@
+import React from "react";
+import { useAuth } from "../contexts/AuthContext";
+
 interface ArticlePreviewProps {
   article: {
     slug: string;
@@ -10,10 +13,24 @@ interface ArticlePreviewProps {
     createdAt: string;
     favoritesCount: number;
     tagList: string[];
+    favorited: boolean;
   };
+  onFavorite: (slug: string, favorited: boolean) => Promise<void>;
 }
 
-const ArticlePreview: React.FC<ArticlePreviewProps> = ({ article }) => {
+const ArticlePreview: React.FC<ArticlePreviewProps> = ({
+  article,
+  onFavorite,
+}) => {
+  const { isAuthenticated } = useAuth();
+
+  const handleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isAuthenticated) {
+      await onFavorite(article.slug, !article.favorited);
+    }
+  };
+
   return (
     <div className="article-preview" key={article.slug}>
       <div className="article-meta">
@@ -28,7 +45,12 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({ article }) => {
             {new Date(article.createdAt).toDateString()}
           </span>
         </div>
-        <button className="btn btn-outline-primary btn-sm pull-xs-right">
+        <button
+          className={`btn btn-sm ${
+            article.favorited ? "btn-primary" : "btn-outline-primary"
+          }`}
+          onClick={handleFavorite}
+        >
           <i className="ion-heart"></i> {article.favoritesCount}
         </button>
       </div>

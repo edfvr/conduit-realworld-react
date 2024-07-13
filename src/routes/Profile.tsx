@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useParams, Link } from "react-router-dom";
@@ -112,8 +112,11 @@ export default function Profile(): JSX.Element {
               </div>
 
               <ArticleList
-                username={profile.username}
-                favorited={activeTab === "favorited"}
+                key={activeTab}
+                activeTab={activeTab === "my" ? "your" : "global"}
+                selectedTag={null}
+                username={activeTab === "my" ? profile.username : undefined}
+                favorited={activeTab === "favorited" ? true : undefined}
               />
             </div>
           </div>
