@@ -1,7 +1,32 @@
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Login(): JSX.Element {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<string[]>([]);
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors([]);
+
+    try {
+      await login(email, password);
+      navigate("/"); // Redirect to home page after successful login
+    } catch (error) {
+      if (error instanceof Error) {
+        setErrors([error.message]);
+      } else {
+        setErrors(["An unexpected error occurred. Please try again."]);
+      }
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -14,16 +39,23 @@ export default function Login(): JSX.Element {
                 <a href="/register">Need an account?</a>
               </p>
 
-              <ul className="error-messages">
-                <li>That email is already taken</li>
-              </ul>
+              {errors.length > 0 && (
+                <ul className="error-messages">
+                  {errors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              )}
 
-              <form>
+              <form onSubmit={handleSubmit}>
                 <fieldset className="form-group">
                   <input
                     className="form-control form-control-lg"
-                    type="text"
+                    type="email"
                     placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </fieldset>
                 <fieldset className="form-group">
@@ -31,9 +63,15 @@ export default function Login(): JSX.Element {
                     className="form-control form-control-lg"
                     type="password"
                     placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
                   />
                 </fieldset>
-                <button className="btn btn-lg btn-primary pull-xs-right">
+                <button
+                  className="btn btn-lg btn-primary pull-xs-right"
+                  type="submit"
+                >
                   Sign in
                 </button>
               </form>
