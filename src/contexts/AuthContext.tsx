@@ -5,25 +5,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-
-interface User {
-  email: string;
-  token: string;
-  username: string;
-  bio: string;
-  image: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  setUser: (user: User | null) => void;
-  token: string | null;
-  setToken: (token: string | null) => void;
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (username: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
-}
+import { AuthContextType, User } from "../Types/AuthContextType";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
