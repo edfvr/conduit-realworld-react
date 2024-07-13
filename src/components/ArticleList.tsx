@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import ArticlePreview from "./ArticlePreview";
 import { Article } from "../Types/Article";
+import { useAuth } from "../contexts/AuthContext";
 
 interface ArticleListProps {
+  activeTab: "your" | "global" | "tag";
   selectedTag: string | null;
 }
 
 export default function ArticleList({
+  activeTab,
   selectedTag,
 }: ArticleListProps): JSX.Element {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -16,39 +19,54 @@ export default function ArticleList({
   const [currentPage, setCurrentPage] = useState(1);
   const [articlesCount, setArticlesCount] = useState(0);
   const ARTICLES_PER_PAGE = 10;
+  const { token } = useAuth();
 
   useEffect(() => {
     const fetchArticles = async () => {
       setIsLoading(true);
+      setError("");
       try {
-        let url = `https://api.realworld.io/api/articles?limit=${ARTICLES_PER_PAGE}&offset=${
-          (currentPage - 1) * ARTICLES_PER_PAGE
-        }`;
-        if (selectedTag) {
-          url += `&tag=${selectedTag}`;
+        let url = "https://api.realworld.io/api/articles";
+        const params: Record<string, string> = {
+          limit: ARTICLES_PER_PAGE.toString(),
+          offset: ((currentPage - 1) * ARTICLES_PER_PAGE).toString(),
+        };
+
+        if (activeTab === "your" && token) {
+          url = "https://api.realworld.io/api/articles/feed";
+        } else if (activeTab === "tag" && selectedTag) {
+          params.tag = selectedTag;
+        }
+
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers.Authorization = `Token ${token}`;
         }
         const response = await axios.get<{
           articles: Article[];
           articlesCount: number;
-        }>(url);
+        }>(url, { headers });
         setArticles(response.data.articles);
         setArticlesCount(response.data.articlesCount);
       } catch (error) {
         setError("Failed to fetch articles.");
+        console.error("Error fetching articles:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchArticles();
-  }, [currentPage, selectedTag]);
-
+  }, [currentPage, activeTab, selectedTag, token]);
+  if (isLoading) {
+    return <div>Loading articles...</div>;
+  }
   if (error) {
     return <div>Error: {error}</div>;
   }
 
-  if (isLoading) {
-    return <div>Loading articles...</div>;
+  if (articles.length === 0) {
+    return <div>No articles are here... yet.</div>;
   }
 
   return (
