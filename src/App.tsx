@@ -1,11 +1,11 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Home from './routes/Home';
-import Login from './routes/Login';
-import Register from './routes/Register';
-import Settings from './routes/Settings';
-import Editor from './routes/Editor';
-import Article from './routes/Article';
-import Profile from './routes/Profile';
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Home from "./routes/Home";
+import Login from "./routes/Login";
+import Register from "./routes/Register";
+import Settings from "./routes/Settings";
+import Editor from "./routes/Editor";
+import Article from "./routes/Article";
+import Profile from "./routes/Profile";
 
 export default function App() {
   return (

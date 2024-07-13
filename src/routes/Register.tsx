@@ -2,10 +2,10 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 export default function Login(): JSX.Element {
-    return (
-      <>
-        <Navbar />
-        <div className="auth-page">
+  return (
+    <>
+      <Navbar />
+      <div className="auth-page">
         <div className="container page">
           <div className="row">
             <div className="col-md-6 offset-md-3 col-xs-12">
@@ -13,11 +13,11 @@ export default function Login(): JSX.Element {
               <p className="text-xs-center">
                 <a href="/login">Have an account?</a>
               </p>
-  
+
               <ul className="error-messages">
                 <li>That email is already taken</li>
               </ul>
-  
+
               <form>
                 <fieldset className="form-group">
                   <input
@@ -49,7 +49,6 @@ export default function Login(): JSX.Element {
         </div>
       </div>
       <Footer />
-      </>
-    );
-  }
-  
+    </>
+  );
+}

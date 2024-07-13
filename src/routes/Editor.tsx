@@ -2,17 +2,17 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 export default function Editor(): JSX.Element {
-    return (
-      <>
-        <Navbar />
-        <div className="editor-page">
+  return (
+    <>
+      <Navbar />
+      <div className="editor-page">
         <div className="container page">
           <div className="row">
             <div className="col-md-10 offset-md-1 col-xs-12">
               <ul className="error-messages">
                 <li>That title is required</li>
               </ul>
-  
+
               <form>
                 <fieldset>
                   <fieldset className="form-group">
@@ -62,6 +62,6 @@ export default function Editor(): JSX.Element {
         </div>
       </div>
       <Footer />
-      </>
-    );
-} 
+    </>
+  );
+}

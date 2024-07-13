@@ -1,106 +1,118 @@
 import Banner from "../components/Banner";
-import Navbar from "../components/Navbar"
+import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import ArticlePreview from "../components/ArticlePreview";
+import { Article } from "../Types/Article";
 
 export default function Home(): JSX.Element {
-    return (
-        <div className="home-page">
-            <Navbar />
-            
-            <Banner />
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-            <div className="container page">
-              <div className="row">
-                  <div className="col-md-9">
-                      <div className="feed-toggle">
-                          <ul className="nav nav-pills outline-active">
-                              <li className="nav-item">
-                                  <a className="nav-link" href="">Your Feed</a>
-                              </li>
-                              <li className="nav-item">
-                                  <a className="nav-link active" href="">Global Feed</a>
-                              </li>
-                          </ul>
-                      </div>
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        const response = await axios.get<{ articles: Article[] }>(
+          "https://api.realworld.io/api/articles"
+        );
+        setArticles(response.data.articles);
+      } catch (error) {
+        setError("Failed to fetch articles.");
+      }
+    };
 
-                      <div className="article-preview">
-                          <div className="article-meta">
-                              <a href="/profile/eric-simons">
-                                  <img src="http://i.imgur.com/Qr71crq.jpg" alt="Eric Simons"/>
-                              </a>
-                              <div className="info">
-                                  <a href="/profile/eric-simons" className="author">Eric Simons</a>
-                                  <span className="date">January 20th</span>
-                              </div>
-                              <button className="btn btn-outline-primary btn-sm pull-xs-right">
-                                  <i className="ion-heart"></i> 29
-                              </button>
-                          </div>
-                          <a href="/article/how-to-build-webapps-that-scale" className="preview-link">
-                              <h1>How to build webapps that scale</h1>
-                              <p>This is the description for the post.</p>
-                              <span>Read more...</span>
-                              <ul className="tag-list">
-                                  <li className="tag-default tag-pill tag-outline">realworld</li>
-                                  <li className="tag-default tag-pill tag-outline">implementations</li>
-                              </ul>
-                          </a>
-                      </div>
+    fetchArticles();
+  }, []);
 
-                      <div className="article-preview">
-                          <div className="article-meta">
-                              <a href="/profile/albert-pai">
-                                  <img src="http://i.imgur.com/N4VcUeJ.jpg" alt="Albert Pai"/>
-                              </a>
-                              <div className="info">
-                                  <a href="/profile/albert-pai" className="author">Albert Pai</a>
-                                  <span className="date">January 20th</span>
-                              </div>
-                              <button className="btn btn-outline-primary btn-sm pull-xs-right">
-                                  <i className="ion-heart"></i> 32
-                              </button>
-                          </div>
-                          <a href="/article/the-song-you" className="preview-link">
-                              <h1>The song you won't ever stop singing. No matter how hard you try.</h1>
-                              <p>This is the description for the post.</p>
-                              <span>Read more...</span>
-                              <ul className="tag-list">
-                                  <li className="tag-default tag-pill tag-outline">realworld</li>
-                                  <li className="tag-default tag-pill tag-outline">implementations</li>
-                              </ul>
-                          </a>
-                      </div>
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
-                      <ul className="pagination">
-                          <li className="page-item active">
-                              <a className="page-link" href="">1</a>
-                          </li>
-                          <li className="page-item">
-                              <a className="page-link" href="">2</a>
-                          </li>
-                      </ul>
-                  </div>
+  return (
+    <div className="home-page">
+      <Navbar />
 
-                  <div className="col-md-3">
-                      <div className="sidebar">
-                          <p>Popular Tags</p>
+      <Banner />
 
-                          <div className="tag-list">
-                              <a href="" className="tag-pill tag-default">programming</a>
-                              <a href="" className="tag-pill tag-default">javascript</a>
-                              <a href="" className="tag-pill tag-default">emberjs</a>
-                              <a href="" className="tag-pill tag-default">angularjs</a>
-                              <a href="" className="tag-pill tag-default">react</a>
-                              <a href="" className="tag-pill tag-default">mean</a>
-                              <a href="" className="tag-pill tag-default">node</a>
-                              <a href="" className="tag-pill tag-default">rails</a>
-                          </div>
-                      </div>
-                  </div>
-              </div>
+      <div className="container page">
+        <div className="row">
+          <div className="col-md-9">
+            <div className="feed-toggle">
+              <ul className="nav nav-pills outline-active">
+                <li className="nav-item">
+                  <a className="nav-link" href="">
+                    Your Feed
+                  </a>
+                </li>
+                <li className="nav-item">
+                  <a className="nav-link active" href="">
+                    Global Feed
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {isLoading ? (
+              <div>Loading articles...</div>
+            ) : (
+              <>
+                {articles.map((article) => (
+                  <ArticlePreview key={article.slug} article={article} />
+                ))}
+
+                <ul className="pagination">
+                  <li className="page-item active">
+                    <a className="page-link" href="">
+                      1
+                    </a>
+                  </li>
+                  <li className="page-item">
+                    <a className="page-link" href="">
+                      2
+                    </a>
+                  </li>
+                </ul>
+              </>
+            )}
           </div>
-          <Footer />
+
+          <div className="col-md-3">
+            <div className="sidebar">
+              <p>Popular Tags</p>
+
+              <div className="tag-list">
+                <a href="" className="tag-pill tag-default">
+                  programming
+                </a>
+                <a href="" className="tag-pill tag-default">
+                  javascript
+                </a>
+                <a href="" className="tag-pill tag-default">
+                  emberjs
+                </a>
+                <a href="" className="tag-pill tag-default">
+                  angularjs
+                </a>
+                <a href="" className="tag-pill tag-default">
+                  react
+                </a>
+                <a href="" className="tag-pill tag-default">
+                  mean
+                </a>
+                <a href="" className="tag-pill tag-default">
+                  node
+                </a>
+                <a href="" className="tag-pill tag-default">
+                  rails
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      
+      <Footer />
+    </div>
   );
 }

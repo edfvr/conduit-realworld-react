@@ -2,20 +2,19 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 
 export default function Settings(): JSX.Element {
-    return (
-
-      <>
+  return (
+    <>
       <Navbar />
-        <div className="settings-page">
+      <div className="settings-page">
         <div className="container page">
           <div className="row">
             <div className="col-md-6 offset-md-3 col-xs-12">
               <h1 className="text-xs-center">Your Settings</h1>
-  
+
               <ul className="error-messages">
                 <li>That name is required</li>
               </ul>
-  
+
               <form>
                 <fieldset>
                   <fieldset className="form-group">
@@ -67,8 +66,6 @@ export default function Settings(): JSX.Element {
         </div>
       </div>
       <Footer />
-      </>
-      
-    );
-  }
-  
+    </>
+  );
+}
