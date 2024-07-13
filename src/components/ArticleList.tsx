@@ -3,7 +3,13 @@ import axios from "axios";
 import ArticlePreview from "./ArticlePreview";
 import { Article } from "../Types/Article";
 
-export default function ArticleList(): JSX.Element {
+interface ArticleListProps {
+  selectedTag: string | null;
+}
+
+export default function ArticleList({
+  selectedTag,
+}: ArticleListProps): JSX.Element {
   const [articles, setArticles] = useState<Article[]>([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -15,14 +21,16 @@ export default function ArticleList(): JSX.Element {
     const fetchArticles = async () => {
       setIsLoading(true);
       try {
+        let url = `https://api.realworld.io/api/articles?limit=${ARTICLES_PER_PAGE}&offset=${
+          (currentPage - 1) * ARTICLES_PER_PAGE
+        }`;
+        if (selectedTag) {
+          url += `&tag=${selectedTag}`;
+        }
         const response = await axios.get<{
           articles: Article[];
           articlesCount: number;
-        }>(
-          `https://api.realworld.io/api/articles?limit=${ARTICLES_PER_PAGE}&offset=${
-            (currentPage - 1) * ARTICLES_PER_PAGE
-          }`
-        );
+        }>(url);
         setArticles(response.data.articles);
         setArticlesCount(response.data.articlesCount);
       } catch (error) {
@@ -33,7 +41,7 @@ export default function ArticleList(): JSX.Element {
     };
 
     fetchArticles();
-  }, [currentPage]);
+  }, [currentPage, selectedTag]);
 
   if (error) {
     return <div>Error: {error}</div>;

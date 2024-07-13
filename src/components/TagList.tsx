@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-export default function TagList(): JSX.Element {
+interface TagListProps {
+  onTagSelect: (tag: string) => void;
+}
+
+export default function TagList({ onTagSelect }: TagListProps): JSX.Element {
   const [tags, setTags] = useState<string[]>([]);
 
   useEffect(() => {
@@ -24,7 +28,15 @@ export default function TagList(): JSX.Element {
       <p>Popular Tags</p>
       <div className="tag-list">
         {tags.map((tag) => (
-          <a key={tag} href="" className="tag-pill tag-default">
+          <a
+            key={tag}
+            href=""
+            className="tag-pill tag-default"
+            onClick={(e) => {
+              e.preventDefault();
+              onTagSelect(tag);
+            }}
+          >
             {tag}
           </a>
         ))}

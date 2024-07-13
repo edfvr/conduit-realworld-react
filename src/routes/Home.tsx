@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Banner from "../components/Banner";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -6,6 +7,8 @@ import FeedToggle from "../components/FeedToggle";
 import TagList from "../components/TagList";
 
 export default function Home(): JSX.Element {
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
   return (
     <div className="home-page">
       <Navbar />
@@ -13,11 +16,11 @@ export default function Home(): JSX.Element {
       <div className="container page">
         <div className="row">
           <div className="col-md-9">
-            <FeedToggle />
-            <ArticleList />
+            <FeedToggle selectedTag={selectedTag} />
+            <ArticleList selectedTag={selectedTag} />
           </div>
           <div className="col-md-3">
-            <TagList />
+            <TagList onTagSelect={setSelectedTag} />
           </div>
         </div>
       </div>
