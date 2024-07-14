@@ -1,8 +1,11 @@
 import React, { useContext } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
+interface ProtectedRouteProps {
+  children?: React.ReactNode;
+}
 
-export const ProtectedRoute: React.FC = () => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const authContext = useContext(AuthContext);
 
   if (!authContext) {
@@ -15,5 +18,5 @@ export const ProtectedRoute: React.FC = () => {
     return <Navigate to="/login" replace />;
   }
 
-  return <Outlet />;
+  return children ? <>{children}</> : <Outlet />;
 };

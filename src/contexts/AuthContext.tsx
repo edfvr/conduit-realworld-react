@@ -7,7 +7,9 @@ import React, {
 } from "react";
 import { AuthContextType, User } from "../Types/AuthContextType";
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
 interface AuthProviderProps {
   children: ReactNode; // ReactNode allows any valid React children to be passed
