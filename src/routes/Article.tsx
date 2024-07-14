@@ -1,38 +1,70 @@
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { Article as ArticleType, Comment } from "../Types/Article";
+
+interface Params {
+  slug: string;
+}
 
 export default function Article(): JSX.Element {
+  const { slug } = useParams<{ slug: string }>();
+  const [article, setArticle] = useState<ArticleType | null>(null);
+
+  useEffect(() => {
+    const fetchArticle = async () => {
+      try {
+        const response = await fetch(
+          `https://api.realworld.io/api/articles/${slug}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setArticle(data.article);
+        }
+      } catch (error) {
+        console.error("Error fetching article:", error);
+      }
+    };
+
+    fetchArticle();
+  }, [slug]);
+
+  if (!article) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <>
       <Navbar />
       <div className="article-page">
         <div className="banner">
           <div className="container">
-            <h1>How to build webapps that scale</h1>
+            <h1>{article.title}</h1>
             <div className="article-meta">
-              <a href="/profile/eric-simons">
-                <img src="http://i.imgur.com/Qr71crq.jpg" />
-              </a>
+              <Link to={`/profile/${article.author.username}`}>
+                <img src={article.author.image} alt={article.author.username} />
+              </Link>
               <div className="info">
-                <a href="/profile/eric-simons" className="author">
-                  Eric Simons
-                </a>
-                <span className="date">January 20th</span>
+                <Link
+                  to={`/profile/${article.author.username}`}
+                  className="author"
+                >
+                  {article.author.username}
+                </Link>
+                <span className="date">
+                  {new Date(article.createdAt).toDateString()}
+                </span>
               </div>
               <button className="btn btn-sm btn-outline-secondary">
                 <i className="ion-plus-round"></i>
-                &nbsp; Follow Eric Simons <span className="counter">(10)</span>
+                &nbsp; Follow {article.author.username}
               </button>
               &nbsp;&nbsp;
               <button className="btn btn-sm btn-outline-primary">
                 <i className="ion-heart"></i>
-                &nbsp; Favorite Post <span className="counter">(29)</span>
-              </button>
-              <button className="btn btn-sm btn-outline-secondary">
-                <i className="ion-edit"></i> Edit Article
-              </button>
-              <button className="btn btn-sm btn-outline-danger">
-                <i className="ion-trash-a"></i> Delete Article
+                &nbsp; Favorite Article{" "}
+                <span className="counter">({article.favoritesCount})</span>
               </button>
             </div>
           </div>
@@ -41,19 +73,13 @@ export default function Article(): JSX.Element {
         <div className="container page">
           <div className="row article-content">
             <div className="col-md-12">
-              <p>
-                Web development technologies have evolved at an incredible clip
-                over the past few years.
-              </p>
-              <h2 id="introducing-ionic">Introducing RealWorld.</h2>
-              <p>
-                It's a great solution for learning how other frameworks work.
-              </p>
+              <p>{article.body}</p>
               <ul className="tag-list">
-                <li className="tag-default tag-pill tag-outline">realworld</li>
-                <li className="tag-default tag-pill tag-outline">
-                  implementations
-                </li>
+                {article.tagList.map((tag) => (
+                  <li key={tag} className="tag-default tag-pill tag-outline">
+                    {tag}
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
@@ -62,29 +88,29 @@ export default function Article(): JSX.Element {
 
           <div className="article-actions">
             <div className="article-meta">
-              <a href="profile.html">
-                <img src="http://i.imgur.com/Qr71crq.jpg" />
-              </a>
+              <Link to={`/profile/${article.author.username}`}>
+                <img src={article.author.image} alt={article.author.username} />
+              </Link>
               <div className="info">
-                <a href="" className="author">
-                  Eric Simons
-                </a>
-                <span className="date">January 20th</span>
+                <Link
+                  to={`/profile/${article.author.username}`}
+                  className="author"
+                >
+                  {article.author.username}
+                </Link>
+                <span className="date">
+                  {new Date(article.createdAt).toDateString()}
+                </span>
               </div>
               <button className="btn btn-sm btn-outline-secondary">
                 <i className="ion-plus-round"></i>
-                &nbsp; Follow Eric Simons
+                &nbsp; Follow {article.author.username}
               </button>
               &nbsp;
               <button className="btn btn-sm btn-outline-primary">
                 <i className="ion-heart"></i>
-                &nbsp; Favorite Article <span className="counter">(29)</span>
-              </button>
-              <button className="btn btn-sm btn-outline-secondary">
-                <i className="ion-edit"></i> Edit Article
-              </button>
-              <button className="btn btn-sm btn-outline-danger">
-                <i className="ion-trash-a"></i> Delete Article
+                &nbsp; Favorite Article
+                <span className="counter">({article.favoritesCount})</span>
               </button>
             </div>
           </div>
@@ -110,52 +136,38 @@ export default function Article(): JSX.Element {
                 </div>
               </form>
 
-              <div className="card">
-                <div className="card-block">
-                  <p className="card-text">
-                    With supporting text below as a natural lead-in to
-                    additional content.
-                  </p>
-                </div>
-                <div className="card-footer">
-                  <a href="/profile/author" className="comment-author">
-                    <img
-                      src="http://i.imgur.com/Qr71crq.jpg"
-                      className="comment-author-img"
-                    />
-                  </a>
-                  &nbsp;
-                  <a href="/profile/jacob-schmidt" className="comment-author">
-                    Jacob Schmidt
-                  </a>
-                  <span className="date-posted">Dec 29th</span>
-                </div>
-              </div>
-
-              <div className="card">
-                <div className="card-block">
-                  <p className="card-text">
-                    With supporting text below as a natural lead-in to
-                    additional content.
-                  </p>
-                </div>
-                <div className="card-footer">
-                  <a href="/profile/author" className="comment-author">
-                    <img
-                      src="http://i.imgur.com/Qr71crq.jpg"
-                      className="comment-author-img"
-                    />
-                  </a>
-                  &nbsp;
-                  <a href="/profile/jacob-schmidt" className="comment-author">
-                    Jacob Schmidt
-                  </a>
-                  <span className="date-posted">Dec 29th</span>
-                  <span className="mod-options">
-                    <i className="ion-trash-a"></i>
-                  </span>
-                </div>
-              </div>
+              {article.comments &&
+                article.comments.map((comment: Comment) => (
+                  <div key={comment.id} className="card">
+                    <div className="card-block">
+                      <p className="card-text">{comment.body}</p>
+                    </div>
+                    <div className="card-footer">
+                      <Link
+                        to={`/profile/${comment.author.username}`}
+                        className="comment-author"
+                      >
+                        <img
+                          src={comment.author.image}
+                          className="comment-author-img"
+                        />
+                      </Link>
+                      &nbsp;
+                      <Link
+                        to={`/profile/${comment.author.username}`}
+                        className="comment-author"
+                      >
+                        {comment.author.username}
+                      </Link>
+                      <span className="date-posted">
+                        {new Date(comment.createdAt).toDateString()}
+                      </span>
+                      <span className="mod-options">
+                        <i className="ion-trash-a"></i>
+                      </span>
+                    </div>
+                  </div>
+                ))}
             </div>
           </div>
         </div>

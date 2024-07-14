@@ -1,4 +1,5 @@
 import { Article } from "../Types/Article";
+import { Link } from "react-router-dom";
 
 interface ArticlePreviewProps {
   article: Article;
@@ -16,13 +17,13 @@ export default function ArticlePreview({
   return (
     <div className="article-preview">
       <div className="article-meta">
-        <a href={`/profile/${article.author.username}`}>
+        <Link to={`/profile/${article.author.username}`}>
           <img src={article.author.image} alt={article.author.username} />
-        </a>
+        </Link>
         <div className="info">
-          <a href={`/profile/${article.author.username}`} className="author">
+          <Link to={`/profile/${article.author.username}`} className="author">
             {article.author.username}
-          </a>
+          </Link>
           <span className="date">
             {new Date(article.createdAt).toDateString()}
           </span>
@@ -36,11 +37,11 @@ export default function ArticlePreview({
           <i className="ion-heart"></i> {article.favoritesCount}
         </button>
       </div>
-      <a href={`/article/${article.slug}`} className="preview-link">
+      <Link to={`/article/${article.slug}`} className="preview-link">
         <h1>{article.title}</h1>
         <p>{article.description}</p>
         <span>Read more...</span>
-      </a>
+      </Link>
     </div>
   );
 }

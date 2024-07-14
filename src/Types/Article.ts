@@ -1,3 +1,17 @@
+export interface Author {
+  username: string;
+  bio: string;
+  image: string;
+  following: boolean;
+}
+
+export interface Comment {
+  id: number;
+  body: string;
+  createdAt: string;
+  author: Author;
+}
+
 export interface Article {
   slug: string;
   title: string;
@@ -8,10 +22,6 @@ export interface Article {
   updatedAt: string;
   favorited: boolean;
   favoritesCount: number;
-  author: {
-    username: string;
-    bio: string;
-    image: string;
-    following: boolean;
-  };
+  author: Author;
+  comments?: Comment[];
 }
