@@ -5,6 +5,11 @@ export default function Navbar(): JSX.Element {
   const { isAuthenticated, user, logout } = useAuth();
   const location = useLocation();
 
+  /**
+   * Determine the current URL path
+   * @param path The path to compare with the current location pathname.
+   * @returns {boolean} Returns true if the path matches, otherwise false.
+   */
   const isActive = (path: string) => location.pathname === path;
 
   return (

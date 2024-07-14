@@ -1,22 +1,25 @@
-import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Article as ArticleType, Comment } from "../Types/Article";
-
-interface Params {
-  slug: string;
-}
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Article(): JSX.Element {
   const { slug } = useParams<{ slug: string }>();
   const [article, setArticle] = useState<ArticleType | null>(null);
+  const [comment, setComment] = useState("");
+  const { user, token } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchArticle = async () => {
       try {
         const response = await fetch(
-          `https://api.realworld.io/api/articles/${slug}`
+          `https://api.realworld.io/api/articles/${slug}`,
+          {
+            headers: token ? { Authorization: `Token ${token}` } : {},
+          }
         );
         if (response.ok) {
           const data = await response.json();
@@ -28,11 +31,107 @@ export default function Article(): JSX.Element {
     };
 
     fetchArticle();
-  }, [slug]);
+  }, [slug, token]);
 
   if (!article) {
     return <div>Loading...</div>;
   }
+
+  const isAuthor = user && user.username === article.author.username;
+
+  const handleEdit = () => {
+    navigate(`/editor/${article.slug}`);
+  };
+
+  /**
+   *
+   */
+  const handleDelete = async () => {
+    if (window.confirm("Are you sure you want to delete this article?")) {
+      try {
+        const response = await fetch(
+          `https://api.realworld.io/api/articles/${article.slug}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Token ${token}`,
+            },
+          }
+        );
+        if (response.ok) {
+          navigate("/");
+        } else {
+          console.error("Failed to delete article");
+        }
+      } catch (error) {
+        console.error("Error deleting article:", error);
+      }
+    }
+  };
+
+  /**
+   *
+   * @param e
+   * @returns
+   */
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    try {
+      const response = await fetch(
+        `https://api.realworld.io/api/articles/${article.slug}/comments`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Token ${token}`,
+          },
+          body: JSON.stringify({ comment: { body: comment } }),
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setArticle({
+          ...article,
+          comments: [data.comment, ...(article.comments || [])],
+        });
+        setComment("");
+      }
+    } catch (error) {
+      console.error("Error posting comment:", error);
+    }
+  };
+
+  /**
+   * Handles deletion of a comment from an article.
+   * @param commentId The ID of the comment to delete.
+   */
+  const handleCommentDelete = async (commentId: number) => {
+    try {
+      // Send a DELETE request
+      const response = await fetch(
+        `https://api.realworld.io/api/articles/${article.slug}/comments/${commentId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        }
+      );
+      // If delete was a success, update the article state by excluding the deleted comment from the comments array.
+      if (response.ok) {
+        setArticle({
+          ...article,
+          comments: article.comments?.filter((c) => c.id !== commentId) || [],
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+    }
+  };
 
   return (
     <>
@@ -56,16 +155,34 @@ export default function Article(): JSX.Element {
                   {new Date(article.createdAt).toDateString()}
                 </span>
               </div>
-              <button className="btn btn-sm btn-outline-secondary">
-                <i className="ion-plus-round"></i>
-                &nbsp; Follow {article.author.username}
-              </button>
-              &nbsp;&nbsp;
-              <button className="btn btn-sm btn-outline-primary">
-                <i className="ion-heart"></i>
-                &nbsp; Favorite Article{" "}
-                <span className="counter">({article.favoritesCount})</span>
-              </button>
+              {isAuthor ? (
+                <>
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    onClick={handleEdit}
+                  >
+                    <i className="ion-edit"></i> Edit Article
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-danger"
+                    onClick={handleDelete}
+                  >
+                    <i className="ion-trash-a"></i> Delete Article
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="btn btn-sm btn-outline-secondary">
+                    <i className="ion-plus-round"></i>
+                    &nbsp; Follow {article.author.username}
+                  </button>
+                  <button className="btn btn-sm btn-outline-primary">
+                    <i className="ion-heart"></i>
+                    &nbsp; Favorite Article{" "}
+                    <span className="counter">({article.favoritesCount})</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -102,35 +219,59 @@ export default function Article(): JSX.Element {
                   {new Date(article.createdAt).toDateString()}
                 </span>
               </div>
-              <button className="btn btn-sm btn-outline-secondary">
-                <i className="ion-plus-round"></i>
-                &nbsp; Follow {article.author.username}
-              </button>
-              &nbsp;
-              <button className="btn btn-sm btn-outline-primary">
-                <i className="ion-heart"></i>
-                &nbsp; Favorite Article
-                <span className="counter">({article.favoritesCount})</span>
-              </button>
+              {isAuthor ? (
+                <>
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    onClick={handleEdit}
+                  >
+                    <i className="ion-edit"></i> Edit Article
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-danger"
+                    onClick={handleDelete}
+                  >
+                    <i className="ion-trash-a"></i> Delete Article
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="btn btn-sm btn-outline-secondary">
+                    <i className="ion-plus-round"></i>
+                    &nbsp; Follow {article.author.username}
+                  </button>
+                  <button className="btn btn-sm btn-outline-primary">
+                    <i className="ion-heart"></i>
+                    &nbsp; Favorite Article{" "}
+                    <span className="counter">({article.favoritesCount})</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
           <div className="row">
             <div className="col-xs-12 col-md-8 offset-md-2">
-              <form className="card comment-form">
+              <form
+                className="card comment-form"
+                onSubmit={handleCommentSubmit}
+              >
                 <div className="card-block">
                   <textarea
                     className="form-control"
                     placeholder="Write a comment..."
                     rows={3}
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
                   ></textarea>
                 </div>
                 <div className="card-footer">
                   <img
-                    src="http://i.imgur.com/Qr71crq.jpg"
+                    src={user?.image || "http://i.imgur.com/Qr71crq.jpg"}
                     className="comment-author-img"
+                    alt="User"
                   />
-                  <button className="btn btn-sm btn-primary">
+                  <button className="btn btn-sm btn-primary" type="submit">
                     Post Comment
                   </button>
                 </div>
@@ -150,6 +291,7 @@ export default function Article(): JSX.Element {
                         <img
                           src={comment.author.image}
                           className="comment-author-img"
+                          alt={comment.author.username}
                         />
                       </Link>
                       &nbsp;
@@ -162,9 +304,14 @@ export default function Article(): JSX.Element {
                       <span className="date-posted">
                         {new Date(comment.createdAt).toDateString()}
                       </span>
-                      <span className="mod-options">
-                        <i className="ion-trash-a"></i>
-                      </span>
+                      {user && user.username === comment.author.username && (
+                        <span
+                          className="mod-options"
+                          onClick={() => handleCommentDelete(comment.id)}
+                        >
+                          <i className="ion-trash-a"></i>
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}

@@ -26,19 +26,30 @@ export default function Profile(): JSX.Element {
     fetchProfile();
     fetchArticles();
     fetchFavoritedArticles();
-  }, [username]);
+  }, [username, isAuthenticated]);
 
+  /**
+   * Fetches the profile data for the specified username.
+   */
   const fetchProfile = async () => {
     try {
+      const headers = isAuthenticated
+        ? { Authorization: `Token ${localStorage.getItem("token")}` }
+        : {};
       const response = await axios.get(
-        `https://api.realworld.io/api/profiles/${username}`
+        `https://api.realworld.io/api/profiles/${username}`,
+        { headers }
       );
+      //Update state
       setProfile(response.data.profile);
     } catch (error) {
       console.error("Error fetching profile:", error);
     }
   };
 
+  /**
+   * Fetches articles authored by the specified username.
+   */
   const fetchArticles = async () => {
     try {
       const response = await axios.get(
@@ -50,6 +61,9 @@ export default function Profile(): JSX.Element {
     }
   };
 
+  /**
+   * Fetches articles favorited by the specified username.
+   */
   const fetchFavoritedArticles = async () => {
     try {
       const response = await axios.get(
@@ -61,10 +75,45 @@ export default function Profile(): JSX.Element {
     }
   };
 
+  /**
+   * Toggles the follow status of a user.
+   */
   const handleFollow = async () => {
-    // Implement follow/unfollow logic here
+    //Exit the function if the user is not authenticated
+    if (!isAuthenticated) {
+      console.log("You need to be logged in to follow a user");
+      return;
+    }
+
+    // Exit the function if the profile data is not available
+    if (!profile) {
+      console.error("Profile data is not available");
+      return;
+    }
+
+    try {
+      // Determine the HTTP method based on whether the profile is currently being followed
+      const method = profile.following ? "delete" : "post";
+      //request to the API to follow or unfollow the user
+      const response = await axios({
+        method,
+        url: `https://api.realworld.io/api/profiles/${username}/follow`,
+        headers: { Authorization: `Token ${localStorage.getItem("token")}` },
+      });
+      // Extract the updated profile from the response
+      const updatedProfile = response.data.profile;
+      // Update the profile state with the new follow status
+      setProfile(updatedProfile);
+    } catch (error) {
+      console.error("Error toggling follow:", error);
+    }
   };
 
+  /**
+   * Toggles the favorite status of an article.
+   * @param article The article to toggle the favorite status for.
+   * @returns The updated article, or null if an error occurs.
+   */
   const handleFavoriteToggle = async (
     article: Article
   ): Promise<Article | null> => {
@@ -120,14 +169,21 @@ export default function Profile(): JSX.Element {
                 />
                 <h4>{profile.username}</h4>
                 <p>{profile.bio}</p>
-                {isAuthenticated && user?.username !== profile.username && (
+                {isAuthenticated && user?.username !== profile?.username && (
                   <button
                     className="btn btn-sm btn-outline-secondary action-btn"
                     onClick={handleFollow}
+                    disabled={!isAuthenticated || !profile}
                   >
-                    <i className="ion-plus-round"></i>
-                    &nbsp; {profile.following ? "Unfollow" : "Follow"}{" "}
-                    {profile.username}
+                    <i
+                      className={
+                        profile?.following
+                          ? "ion-minus-round"
+                          : "ion-plus-round"
+                      }
+                    ></i>
+                    &nbsp; {profile?.following ? "Unfollow" : "Follow"}{" "}
+                    {profile?.username}
                   </button>
                 )}
                 {isAuthenticated && user?.username === profile.username && (

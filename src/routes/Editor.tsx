@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useAuth } from "../contexts/AuthContext";
@@ -13,23 +13,74 @@ export default function Editor(): JSX.Element {
   const [errors, setErrors] = useState<string[]>([]);
   const { token } = useAuth();
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug?: string }>();
 
+  useEffect(() => {
+    if (slug) {
+      fetchArticle();
+    }
+  }, [slug]);
+
+  /**
+   * Fetches an article from RealWOrld API
+   *   using slug provided
+   */
+  const fetchArticle = async () => {
+    try {
+      const response = await fetch(
+        `https://api.realworld.io/api/articles/${slug}`,
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        }
+      );
+      //if successful, extract article from the response, then update state
+      if (response.ok) {
+        const { article } = await response.json();
+        setTitle(article.title);
+        setDescription(article.description);
+        setBody(article.body);
+        setTagList(article.tagList);
+      }
+    } catch (error) {
+      console.error("Error fetching article:", error);
+    }
+  };
+
+  /**
+   * Handles form submission for creating
+   *  or updating an article
+   * @param e Form event
+   * @returns {Promise<void>}
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors([]);
 
+    //check if fields are not filled
     if (!title || !description || !body) {
       setErrors(["Please fill in all required fields"]);
       return;
     }
 
+    //method to use; if we creating POST, if updating PUT
+    const method = slug ? "PUT" : "POST";
+
+    // url if we are creating or updating
+    const url = slug
+      ? `https://api.realworld.io/api/articles/${slug}`
+      : "https://api.realworld.io/api/articles";
+
     try {
-      const response = await fetch("https://api.realworld.io/api/articles", {
-        method: "POST",
+      //fetch method, header and body
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Token ${token}`,
         },
+        //Convert data fetched into JSON
         body: JSON.stringify({
           article: {
             title,
@@ -40,6 +91,7 @@ export default function Editor(): JSX.Element {
         }),
       });
 
+      // if success extract the response
       if (response.ok) {
         const data = await response.json();
         navigate(`/article/${data.article.slug}`);
@@ -52,6 +104,11 @@ export default function Editor(): JSX.Element {
     }
   };
 
+  /**
+   * Handles adding a tag to the tag list
+   *  when the Enter key is pressed.
+   * @param e - The keyboard event from the input field.
+   */
   const addTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput) {
       e.preventDefault();
@@ -62,6 +119,10 @@ export default function Editor(): JSX.Element {
     }
   };
 
+  /**
+   * Handles removing a tag from the tag list.
+   * @param tag The tag string to be removed.
+   */
   const removeTag = (tag: string) => {
     setTagList(tagList.filter((t) => t !== tag));
   };
