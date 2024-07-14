@@ -51,19 +51,26 @@ To run the project, follow these steps:
 npm run dev
 ```
 
-2. Open a web browser and navigate to:
+2. Open a web browser and navigate to http://localhost:5173 (or the port specified in your console)
 
 ## Features
 
-- UI & API Integration
-- Authentication
-- CRUD
+- Responsive UI with React components
+- API Integration using Axios
+- User Authentication (JWT)
+- CRUD operations for articles
+- Commenting system
+- Favoriting articles
+- Following other users
+- Pagination
 
 ## Technologies Used
 
 - React
 - TypeScript
-- Vite
+- Vite (for fast development and building)
+- Axios (for API requests)
+- React Router (navigation)
 
 ## License
 
