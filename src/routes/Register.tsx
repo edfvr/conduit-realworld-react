@@ -12,13 +12,18 @@ export default function SignUp(): JSX.Element {
   const navigate = useNavigate();
   const { signup } = useAuth();
 
+  /**
+   * Handles form submission for user sign up.
+   * @param e The form event object.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    //Clear previous errors
     setErrors([]);
 
     try {
       await signup(username, email, password);
-      navigate("/"); // Redirect to home page after successful login
+      navigate("/");
     } catch (error) {
       if (error instanceof Error) {
         setErrors([error.message]);

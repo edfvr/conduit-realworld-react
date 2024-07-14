@@ -11,13 +11,18 @@ export default function Login(): JSX.Element {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  /**
+   * Handles form submission for user login.
+   * @param e The form event object.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    //Clear previous errors
     setErrors([]);
 
     try {
       await login(email, password);
-      navigate("/"); // Redirect to home page after successful login
+      navigate("/");
     } catch (error) {
       if (error instanceof Error) {
         setErrors([error.message]);
