@@ -1,5 +1,3 @@
-import { useAuth } from "../contexts/AuthContext";
-
 interface FeedToggleProps {
   activeTab: "your" | "global" | "tag";
   setActiveTab: (tab: "your" | "global" | "tag") => void;

@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Settings(): JSX.Element {
+  //get user's details from authentication context
   const { user, setUser, token, logout } = useAuth();
   const navigate = useNavigate();
   const [image, setImage] = useState("");
@@ -15,19 +16,26 @@ export default function Settings(): JSX.Element {
   const [errors, setErrors] = useState<string[]>([]);
 
   useEffect(() => {
+    //Load user's data into the form
     if (user) {
-      setImage(user.image || "");
+      setImage(user.image || ""); // If user.image is null or undefined, use an empty string
       setUsername(user.username || "");
       setBio(user.bio || "");
       setEmail(user.email || "");
     }
   }, [user]);
 
+  /**
+   * Handles form submission for updating user settings.
+   *  Sends updated user data to the API and processes the response.
+   * @param e The form event triggered by form submission
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors([]);
 
     try {
+      // Send updated user data to the API
       const response = await fetch("https://api.realworld.io/api/user", {
         method: "PUT",
         headers: {
@@ -40,18 +48,21 @@ export default function Settings(): JSX.Element {
             username,
             bio,
             email,
+            // Include password only if it's not empty
             password: password || undefined,
           },
         }),
       });
 
+      // If update is successful, update user
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
-        // Navigate to the profile page after successful update
         navigate(`/profile/${data.user.username}`);
       } else {
+        //If API request fails, parse the error response
         const errorData = await response.json();
+        // Extract error messages from the response and set them in state
         setErrors(
           Object.entries(errorData.errors).map(
             ([key, value]) => `${key} ${value}`
@@ -64,6 +75,10 @@ export default function Settings(): JSX.Element {
     }
   };
 
+  /**
+   * Calls the loguot funcion from AuthContext
+   *  and navigates user to the homepage
+   */
   const handleLogout = () => {
     logout();
     navigate("/");

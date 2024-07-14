@@ -10,7 +10,7 @@ import { AuthContextType, User } from "../Types/AuthContextType";
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
-  children: ReactNode;
+  children: ReactNode; // ReactNode allows any valid React children to be passed
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -19,16 +19,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.getItem("token")
   );
 
+  // Use useEffect to chekc if token is present or not
   useEffect(() => {
     if (token) {
+      // update localStorage with token if token is present
       localStorage.setItem("token", token);
       fetchUser();
     } else {
+      // remove token if it is null
       localStorage.removeItem("token");
       setUser(null);
     }
   }, [token]);
 
+  /**
+   * Fetches user data from the RealWorld API
+   *  using the current token stored in state.
+   */
   const fetchUser = async () => {
     try {
       const response = await fetch("https://api.realworld.io/api/user", {
@@ -48,6 +55,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  /**
+   * Initiates a login attempt for the user
+   *   with the provided email and password.
+   * @param email The user's email
+   * @param password The user's password
+   */
   const login = async (email: string, password: string) => {
     try {
       const response = await fetch("https://api.realworld.io/api/users/login", {
@@ -63,7 +76,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setToken(data.user.token);
         setUser(data.user);
       } else {
-        throw new Error("Login failed");
+        const errorData = await response.json();
+        if (errorData.errors && errorData.errors["email or password"]) {
+          if (errorData.errors["email or password"].includes("is invalid")) {
+            throw new Error("Wrong email/password combination");
+          }
+        }
+        throw new Error("Email not found. Sign up first");
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -71,8 +90,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  /**
+   * Registers a new user with the RealWorld API
+   *  using provided username, email, and password.
+   * @param username The username of the new user.
+   * @param email The email address of the new user.
+   * @param password The password of the new user.
+   */
   const signup = async (username: string, email: string, password: string) => {
     try {
+      // Send a POST request to the RealWorld API to create a new user
       const response = await fetch("https://api.realworld.io/api/users", {
         method: "POST",
         headers: {
@@ -81,11 +108,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         body: JSON.stringify({ user: { username, email, password } }),
       });
 
+      //If the HTTP response is successful, parse the response body and set state
       if (response.ok) {
         const data = await response.json();
         setToken(data.user.token);
         setUser(data.user);
       } else {
+        const errorData = await response.json();
+        if (errorData.errors) {
+          if (
+            errorData.errors.email &&
+            errorData.errors.email.includes("has already been taken")
+          ) {
+            throw new Error("Email already exists. Try logging in");
+          }
+          if (
+            errorData.errors.username &&
+            errorData.errors.username.includes("has already been taken")
+          ) {
+            throw new Error(
+              "Username already exists. Please choose a different username"
+            );
+          }
+          throw new Error(
+            "Sign up failed: " + JSON.stringify(errorData.errors)
+          );
+        }
         throw new Error("Sign up failed");
       }
     } catch (error) {
@@ -94,6 +142,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  /**
+   * Logs out the current user
+   *  by clearing both token and user states.
+   */
   const logout = () => {
     setToken(null);
     setUser(null);
@@ -117,6 +169,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 };
 
+/**
+ * Custom hook to access the authentication context.
+ * Throws an error if used outside of the AuthProvider.
+ * @returns The authentication context
+ *  containing user data and authentication methods.
+ */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
