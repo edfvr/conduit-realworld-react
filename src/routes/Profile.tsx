@@ -5,6 +5,7 @@ import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import ArticleList from "../components/ArticleList";
 import { Article } from "../Types/Article";
+import axios from "axios";
 
 interface ProfileData {
   username: string;
@@ -18,41 +19,43 @@ export default function Profile(): JSX.Element {
   const { user, isAuthenticated } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [activeTab, setActiveTab] = useState<"my" | "favorited">("my");
+  const [articles, setArticles] = useState<Article[]>([]);
   const [favoritedArticles, setFavoritedArticles] = useState<Article[]>([]);
 
   useEffect(() => {
     fetchProfile();
+    fetchArticles();
+    fetchFavoritedArticles();
   }, [username]);
-
-  useEffect(() => {
-    if (activeTab === "favorited") {
-      fetchFavoritedArticles();
-    }
-  }, [activeTab]);
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch(
+      const response = await axios.get(
         `https://api.realworld.io/api/profiles/${username}`
       );
-      if (response.ok) {
-        const data = await response.json();
-        setProfile(data.profile);
-      }
+      setProfile(response.data.profile);
     } catch (error) {
       console.error("Error fetching profile:", error);
     }
   };
 
+  const fetchArticles = async () => {
+    try {
+      const response = await axios.get(
+        `https://api.realworld.io/api/articles?author=${username}`
+      );
+      setArticles(response.data.articles);
+    } catch (error) {
+      console.error("Error fetching articles:", error);
+    }
+  };
+
   const fetchFavoritedArticles = async () => {
     try {
-      const response = await fetch(
+      const response = await axios.get(
         `https://api.realworld.io/api/articles?favorited=${username}`
       );
-      if (response.ok) {
-        const data = await response.json();
-        setFavoritedArticles(data.articles);
-      }
+      setFavoritedArticles(response.data.articles);
     } catch (error) {
       console.error("Error fetching favorited articles:", error);
     }
@@ -62,12 +65,40 @@ export default function Profile(): JSX.Element {
     // Implement follow/unfollow logic here
   };
 
-  const handleFavoriteToggle = (article: Article) => {
-    setFavoritedArticles((prevFavoritedArticles) =>
-      prevFavoritedArticles.some((a) => a.slug === article.slug)
-        ? prevFavoritedArticles.filter((a) => a.slug !== article.slug)
-        : [...prevFavoritedArticles, article]
-    );
+  const handleFavoriteToggle = async (
+    article: Article
+  ): Promise<Article | null> => {
+    try {
+      const method = article.favorited ? "delete" : "post";
+      const response = await axios({
+        method,
+        url: `https://api.realworld.io/api/articles/${article.slug}/favorite`,
+        headers: { Authorization: `Token ${localStorage.getItem("token")}` },
+      });
+
+      const updatedArticle = response.data.article;
+
+      if (activeTab === "my") {
+        setArticles((prevArticles) =>
+          prevArticles.map((a) =>
+            a.slug === updatedArticle.slug ? updatedArticle : a
+          )
+        );
+      } else {
+        setFavoritedArticles((prevFavorited) => {
+          if (updatedArticle.favorited) {
+            return [...prevFavorited, updatedArticle];
+          } else {
+            return prevFavorited.filter((a) => a.slug !== updatedArticle.slug);
+          }
+        });
+      }
+
+      return updatedArticle;
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      return null;
+    }
   };
 
   if (!profile) {
@@ -143,11 +174,11 @@ export default function Profile(): JSX.Element {
 
               <ArticleList
                 key={activeTab}
-                activeTab={activeTab === "my" ? "your" : "favorited"}
+                activeTab={activeTab}
                 selectedTag={null}
-                username={activeTab === "my" ? profile.username : undefined}
-                favorited={activeTab === "favorited" ? true : undefined}
-                favoritedArticles={favoritedArticles}
+                username={profile.username}
+                favorited={activeTab === "favorited"}
+                articles={activeTab === "my" ? articles : favoritedArticles}
                 onFavoriteToggle={handleFavoriteToggle}
               />
             </div>

@@ -6,13 +6,14 @@ import ArticleList from "../components/ArticleList";
 import FeedToggle from "../components/FeedToggle";
 import TagList from "../components/TagList";
 import { useAuth } from "../contexts/AuthContext";
+import { Article } from "../Types/Article";
+import axios from "axios";
 
 export default function Home(): JSX.Element {
   const [activeTab, setActiveTab] = useState<"your" | "global" | "tag">(
     "global"
   );
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [favoritedArticles, setFavoritedArticles] = useState<string[]>([]);
   const { isAuthenticated } = useAuth();
 
   const handleTagSelect = (tag: string) => {
@@ -20,12 +21,22 @@ export default function Home(): JSX.Element {
     setActiveTab("tag");
   };
 
-  const handleFavoriteToggle = (slug: string) => {
-    setFavoritedArticles((prevFavoritedArticles) =>
-      prevFavoritedArticles.includes(slug)
-        ? prevFavoritedArticles.filter((article) => article !== slug)
-        : [...prevFavoritedArticles, slug]
-    );
+  const handleFavoriteToggle = async (article: Article) => {
+    try {
+      const method = article.favorited ? "delete" : "post";
+      const response = await axios({
+        method,
+        url: `https://api.realworld.io/api/articles/${article.slug}/favorite`,
+        headers: { Authorization: `Token ${localStorage.getItem("token")}` },
+      });
+
+      const updatedArticle = response.data.article;
+      // The ArticleList component will handle updating its own state
+      return updatedArticle;
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      return null;
+    }
   };
 
   return (
@@ -45,7 +56,6 @@ export default function Home(): JSX.Element {
               activeTab={activeTab}
               selectedTag={selectedTag}
               onFavoriteToggle={handleFavoriteToggle}
-              favoritedArticles={favoritedArticles}
             />
           </div>
           <div className="col-md-3">
