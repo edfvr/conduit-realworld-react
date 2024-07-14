@@ -78,20 +78,20 @@ export default function Profile(): JSX.Element {
 
       const updatedArticle = response.data.article;
 
-      if (activeTab === "my") {
+      if (activeTab === "favorited") {
+        // Remove the article from favoritedArticles if it was unfavorited
+        if (!updatedArticle.favorited) {
+          setFavoritedArticles((prevFavorited) =>
+            prevFavorited.filter((a) => a.slug !== updatedArticle.slug)
+          );
+        }
+      } else {
+        // Update the article in the articles list
         setArticles((prevArticles) =>
           prevArticles.map((a) =>
             a.slug === updatedArticle.slug ? updatedArticle : a
           )
         );
-      } else {
-        setFavoritedArticles((prevFavorited) => {
-          if (updatedArticle.favorited) {
-            return [...prevFavorited, updatedArticle];
-          } else {
-            return prevFavorited.filter((a) => a.slug !== updatedArticle.slug);
-          }
-        });
       }
 
       return updatedArticle;
