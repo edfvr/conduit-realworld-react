@@ -1,15 +1,20 @@
-import { Article } from "../Types/Article";
+import React from "react";
 import { Link } from "react-router-dom";
+import { Article } from "../Types/Article";
 
 interface ArticlePreviewProps {
   article: Article;
   onFavoriteToggle: () => void;
+  isFavoritedView?: boolean;
 }
 
 export default function ArticlePreview({
   article,
   onFavoriteToggle,
+  isFavoritedView = false,
 }: ArticlePreviewProps): JSX.Element {
+  const isFavorited = article.favorited || isFavoritedView;
+
   return (
     <div className="article-preview">
       <div className="article-meta">
@@ -25,8 +30,8 @@ export default function ArticlePreview({
           </span>
         </div>
         <button
-          className={`btn btn-sm ${
-            article.favorited ? "btn-primary" : "btn-outline-primary"
+          className={`btn btn-sm pull-xs-right ${
+            isFavorited ? "btn-primary" : "btn-outline-primary"
           }`}
           onClick={onFavoriteToggle}
         >

@@ -108,6 +108,7 @@ export default function ArticleList({
           key={article.slug}
           article={article}
           onFavoriteToggle={() => handleFavorite(article)}
+          isFavoritedView={favorited}
         />
       ))}
       <ul className="pagination">
