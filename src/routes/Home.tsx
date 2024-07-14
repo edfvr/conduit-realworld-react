@@ -12,11 +12,20 @@ export default function Home(): JSX.Element {
     "global"
   );
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [favoritedArticles, setFavoritedArticles] = useState<string[]>([]);
   const { isAuthenticated } = useAuth();
 
   const handleTagSelect = (tag: string) => {
     setSelectedTag(tag);
     setActiveTab("tag");
+  };
+
+  const handleFavoriteToggle = (slug: string) => {
+    setFavoritedArticles((prevFavoritedArticles) =>
+      prevFavoritedArticles.includes(slug)
+        ? prevFavoritedArticles.filter((article) => article !== slug)
+        : [...prevFavoritedArticles, slug]
+    );
   };
 
   return (
@@ -32,7 +41,12 @@ export default function Home(): JSX.Element {
               selectedTag={selectedTag}
               isAuthenticated={isAuthenticated}
             />
-            <ArticleList activeTab={activeTab} selectedTag={selectedTag} />
+            <ArticleList
+              activeTab={activeTab}
+              selectedTag={selectedTag}
+              onFavoriteToggle={handleFavoriteToggle}
+              favoritedArticles={favoritedArticles}
+            />
           </div>
           <div className="col-md-3">
             <TagList onTagSelect={handleTagSelect} />

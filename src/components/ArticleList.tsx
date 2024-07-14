@@ -5,10 +5,12 @@ import { Article } from "../Types/Article";
 import { useAuth } from "../contexts/AuthContext";
 
 interface ArticleListProps {
-  activeTab: "your" | "global" | "tag";
+  activeTab: "your" | "favorited" | "tag";
   selectedTag: string | null;
   username?: string;
   favorited?: boolean;
+  favoritedArticles?: Article[];
+  onFavoriteToggle?: (article: Article) => void;
 }
 
 export default function ArticleList({
@@ -16,6 +18,8 @@ export default function ArticleList({
   selectedTag,
   username,
   favorited,
+  favoritedArticles,
+  onFavoriteToggle,
 }: ArticleListProps): JSX.Element {
   const [articles, setArticles] = useState<Article[]>([]);
   const [error, setError] = useState("");
@@ -36,11 +40,16 @@ export default function ArticleList({
         headers: { Authorization: `Token ${token}` },
       });
 
+      const updatedArticle = response.data.article;
       setArticles(
         articles.map((article) =>
-          article.slug === slug ? response.data.article : article
+          article.slug === slug ? updatedArticle : article
         )
       );
+
+      if (onFavoriteToggle) {
+        onFavoriteToggle(updatedArticle);
+      }
     } catch (error) {
       console.error("Error favoriting article:", error);
     }
@@ -61,10 +70,9 @@ export default function ArticleList({
           url = "https://api.realworld.io/api/articles/feed";
         } else if (activeTab === "tag" && selectedTag) {
           params.tag = selectedTag;
+        } else if (activeTab === "favorited" && username) {
+          params.favorited = username;
         }
-
-        if (username) params.author = username;
-        if (favorited) params.favorited = favorited.toString();
 
         const headers: Record<string, string> = {};
         if (token) {
@@ -89,7 +97,8 @@ export default function ArticleList({
     };
 
     fetchArticles();
-  }, [currentPage, activeTab, selectedTag, token, username, favorited]);
+  }, [currentPage, activeTab, selectedTag, token, username]);
+
   if (isLoading) {
     return <div>Loading articles...</div>;
   }
@@ -103,13 +112,21 @@ export default function ArticleList({
 
   return (
     <>
-      {articles.map((article) => (
-        <ArticlePreview
-          key={article.slug}
-          article={article}
-          onFavorite={handleFavorite}
-        />
-      ))}
+      {activeTab === "favorited" && favoritedArticles
+        ? favoritedArticles.map((article) => (
+            <ArticlePreview
+              key={article.slug}
+              article={article}
+              onFavoriteToggle={handleFavorite}
+            />
+          ))
+        : articles.map((article) => (
+            <ArticlePreview
+              key={article.slug}
+              article={article}
+              onFavoriteToggle={handleFavorite}
+            />
+          ))}
       <ul className="pagination">
         {Array.from({
           length: Math.ceil(articlesCount / ARTICLES_PER_PAGE),
