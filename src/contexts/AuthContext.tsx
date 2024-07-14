@@ -77,11 +77,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(data.user);
       } else {
         const errorData = await response.json();
+        // Check if there are errors for "email or password"
         if (errorData.errors && errorData.errors["email or password"]) {
+          // if password is wrong
           if (errorData.errors["email or password"].includes("is invalid")) {
             throw new Error("Wrong email/password combination");
           }
         }
+        // Email can't be found
         throw new Error("Email not found. Sign up first");
       }
     } catch (error) {
@@ -115,14 +118,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(data.user);
       } else {
         const errorData = await response.json();
+        // Check if there are any errors in the response
         if (errorData.errors) {
           if (
+            // 1. Check if the email has already been taken
             errorData.errors.email &&
             errorData.errors.email.includes("has already been taken")
           ) {
             throw new Error("Email already exists. Try logging in");
           }
           if (
+            // 2. Check if the username has already been taken
             errorData.errors.username &&
             errorData.errors.username.includes("has already been taken")
           ) {
