@@ -4,7 +4,7 @@
 
 ### [Demo](https://demo.realworld.io/)&nbsp;&nbsp;&nbsp;&nbsp;[RealWorld](https://github.com/gothinkster/realworld)
 
-### [Try my demo](https://react-realworld-app.netlify.app//)
+### [Try my demo](https://react-realworld-app.vercel.app//)
 
 This codebase was created to demonstrate a frontend application built with React including CRUD operations, authentication, routing, pagination, and more.
 
